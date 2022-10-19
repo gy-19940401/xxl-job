@@ -3,7 +3,6 @@ package com.xxl.job.core.executor.impl;
 import com.xxl.job.core.executor.XxlJobExecutor;
 import com.xxl.job.core.glue.GlueFactory;
 import com.xxl.job.core.handler.annotation.XxlJob;
-import com.xxl.job.core.handler.impl.MethodJobHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -19,7 +18,7 @@ import java.util.Map;
 
 
 /**
- * xxl-job executor (for spring)
+ * xxl-job executor (for spring) 依赖 spring boot 框架的定时任务调度
  *
  * @author xuxueli 2018-11-01 09:24:52
  */
@@ -27,7 +26,13 @@ public class XxlJobSpringExecutor extends XxlJobExecutor implements ApplicationC
     private static final Logger logger = LoggerFactory.getLogger(XxlJobSpringExecutor.class);
 
 
-    // start
+    //
+
+    /**
+     * start
+     * <p>
+     * SmartInitializingSingleton 主要用于在IoC容器基本启动完成时进行扩展
+     */
     @Override
     public void afterSingletonsInstantiated() {
 
@@ -55,39 +60,19 @@ public class XxlJobSpringExecutor extends XxlJobExecutor implements ApplicationC
     }
 
 
-    /*private void initJobHandlerRepository(ApplicationContext applicationContext) {
-        if (applicationContext == null) {
-            return;
-        }
-
-        // init job handler action
-        Map<String, Object> serviceBeanMap = applicationContext.getBeansWithAnnotation(JobHandler.class);
-
-        if (serviceBeanMap != null && serviceBeanMap.size() > 0) {
-            for (Object serviceBean : serviceBeanMap.values()) {
-                if (serviceBean instanceof IJobHandler) {
-                    String name = serviceBean.getClass().getAnnotation(JobHandler.class).value();
-                    IJobHandler handler = (IJobHandler) serviceBean;
-                    if (loadJobHandler(name) != null) {
-                        throw new RuntimeException("xxl-job jobhandler[" + name + "] naming conflicts.");
-                    }
-                    registJobHandler(name, handler);
-                }
-            }
-        }
-    }*/
-
     private void initJobHandlerMethodRepository(ApplicationContext applicationContext) {
         if (applicationContext == null) {
             return;
         }
         // init job handler from method
+        ///1.获取ioc 容器中的 所有 bean 对象
         String[] beanDefinitionNames = applicationContext.getBeanNamesForType(Object.class, false, true);
         for (String beanDefinitionName : beanDefinitionNames) {
             Object bean = applicationContext.getBean(beanDefinitionName);
 
             Map<Method, XxlJob> annotatedMethods = null;   // referred to ：org.springframework.context.event.EventListenerMethodProcessor.processBean
             try {
+                // 遍历bean 的 所有方法 并找出 有 xxjob 注解的方法<methodName,@Xxjob>
                 annotatedMethods = MethodIntrospector.selectMethods(bean.getClass(),
                         new MethodIntrospector.MetadataLookup<XxlJob>() {
                             @Override
@@ -98,7 +83,7 @@ public class XxlJobSpringExecutor extends XxlJobExecutor implements ApplicationC
             } catch (Throwable ex) {
                 logger.error("xxl-job method-jobhandler resolve error for bean[" + beanDefinitionName + "].", ex);
             }
-            if (annotatedMethods==null || annotatedMethods.isEmpty()) {
+            if (annotatedMethods == null || annotatedMethods.isEmpty()) {
                 continue;
             }
 

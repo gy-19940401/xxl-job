@@ -23,7 +23,7 @@ public class CookieInterceptor implements AsyncHandlerInterceptor {
 	public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
 			ModelAndView modelAndView) throws Exception {
 
-		// cookie
+		// cookie 解析 cookie 并将 cookie 信息存放到 HashMap 中
 		if (modelAndView!=null && request.getCookies()!=null && request.getCookies().length>0) {
 			HashMap<String, Cookie> cookieMap = new HashMap<String, Cookie>();
 			for (Cookie ck : request.getCookies()) {

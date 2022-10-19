@@ -46,19 +46,23 @@ public class ExecutorBizImpl implements ExecutorBiz {
     @Override
     public ReturnT<String> run(TriggerParam triggerParam) {
         // load old：jobHandler + jobThread
+        // 根据 jobId 获取 JobThread
         JobThread jobThread = XxlJobExecutor.loadJobThread(triggerParam.getJobId());
-        IJobHandler jobHandler = jobThread!=null?jobThread.getHandler():null;
+        // 被 Xxjob 注解的方法
+        IJobHandler jobHandler = jobThread != null ? jobThread.getHandler() : null;
+
         String removeOldReason = null;
 
         // valid：jobHandler + jobThread
+        // 运行模式
         GlueTypeEnum glueTypeEnum = GlueTypeEnum.match(triggerParam.getGlueType());
         if (GlueTypeEnum.BEAN == glueTypeEnum) {
-
+            // 以 bean 的方式运行 （bean 的名称）
             // new jobhandler
             IJobHandler newJobHandler = XxlJobExecutor.loadJobHandler(triggerParam.getExecutorHandler());
 
             // valid old jobThread
-            if (jobThread!=null && jobHandler != newJobHandler) {
+            if (jobThread != null && jobHandler != newJobHandler) {
                 // change handler, need kill old thread
                 removeOldReason = "change jobhandler or glue type, and terminate the old job thread.";
 
@@ -79,7 +83,7 @@ public class ExecutorBizImpl implements ExecutorBiz {
             // valid old jobThread
             if (jobThread != null &&
                     !(jobThread.getHandler() instanceof GlueJobHandler
-                        && ((GlueJobHandler) jobThread.getHandler()).getGlueUpdatetime()==triggerParam.getGlueUpdatetime() )) {
+                            && ((GlueJobHandler) jobThread.getHandler()).getGlueUpdatetime() == triggerParam.getGlueUpdatetime())) {
                 // change handler or gluesource updated, need kill old thread
                 removeOldReason = "change job source or glue type, and terminate the old job thread.";
 
@@ -97,12 +101,12 @@ public class ExecutorBizImpl implements ExecutorBiz {
                     return new ReturnT<String>(ReturnT.FAIL_CODE, e.getMessage());
                 }
             }
-        } else if (glueTypeEnum!=null && glueTypeEnum.isScript()) {
+        } else if (glueTypeEnum != null && glueTypeEnum.isScript()) {
 
             // valid old jobThread
             if (jobThread != null &&
                     !(jobThread.getHandler() instanceof ScriptJobHandler
-                            && ((ScriptJobHandler) jobThread.getHandler()).getGlueUpdatetime()==triggerParam.getGlueUpdatetime() )) {
+                            && ((ScriptJobHandler) jobThread.getHandler()).getGlueUpdatetime() == triggerParam.getGlueUpdatetime())) {
                 // change script or gluesource updated, need kill old thread
                 removeOldReason = "change job source or glue type, and terminate the old job thread.";
 
@@ -118,13 +122,13 @@ public class ExecutorBizImpl implements ExecutorBiz {
             return new ReturnT<String>(ReturnT.FAIL_CODE, "glueType[" + triggerParam.getGlueType() + "] is not valid.");
         }
 
-        // executor block strategy
+        // executor block strategy 为每一次调度生成 一个 jobThread
         if (jobThread != null) {
             ExecutorBlockStrategyEnum blockStrategy = ExecutorBlockStrategyEnum.match(triggerParam.getExecutorBlockStrategy(), null);
             if (ExecutorBlockStrategyEnum.DISCARD_LATER == blockStrategy) {
                 // discard when running
                 if (jobThread.isRunningOrHasQueue()) {
-                    return new ReturnT<String>(ReturnT.FAIL_CODE, "block strategy effect："+ExecutorBlockStrategyEnum.DISCARD_LATER.getTitle());
+                    return new ReturnT<String>(ReturnT.FAIL_CODE, "block strategy effect：" + ExecutorBlockStrategyEnum.DISCARD_LATER.getTitle());
                 }
             } else if (ExecutorBlockStrategyEnum.COVER_EARLY == blockStrategy) {
                 // kill running jobThread
@@ -143,7 +147,7 @@ public class ExecutorBizImpl implements ExecutorBiz {
             jobThread = XxlJobExecutor.registJobThread(triggerParam.getJobId(), jobHandler, removeOldReason);
         }
 
-        // push data to queue
+        // push data to queue 将触发can参数 任务加入到 JobThread 触发队列中
         ReturnT<String> pushResult = jobThread.pushTriggerQueue(triggerParam);
         return pushResult;
     }

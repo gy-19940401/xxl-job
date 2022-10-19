@@ -57,6 +57,11 @@ public class JobGroupController {
 		return maps;
 	}
 
+	/**
+	 * 新建执行器
+	 * @param xxlJobGroup
+	 * @return
+	 */
 	@RequestMapping("/save")
 	@ResponseBody
 	public ReturnT<String> save(XxlJobGroup xxlJobGroup){
@@ -100,6 +105,11 @@ public class JobGroupController {
 		return (ret>0)?ReturnT.SUCCESS:ReturnT.FAIL;
 	}
 
+	/**
+	 * 修改执行器
+	 * @param xxlJobGroup
+	 * @return
+	 */
 	@RequestMapping("/update")
 	@ResponseBody
 	public ReturnT<String> update(XxlJobGroup xxlJobGroup){

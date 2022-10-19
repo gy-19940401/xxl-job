@@ -29,7 +29,7 @@ public class JobApiController {
     private AdminBiz adminBiz;
 
     /**
-     * api
+     * api 注册定时任务
      *
      * @param uri
      * @param data
@@ -40,13 +40,15 @@ public class JobApiController {
     @PermissionLimit(limit=false)
     public ReturnT<String> api(HttpServletRequest request, @PathVariable("uri") String uri, @RequestBody(required = false) String data) {
 
-        // valid
+        // valid 只支持 post 方式的调用方式
         if (!"POST".equalsIgnoreCase(request.getMethod())) {
             return new ReturnT<String>(ReturnT.FAIL_CODE, "invalid request, HttpMethod not support.");
         }
         if (uri==null || uri.trim().length()==0) {
             return new ReturnT<String>(ReturnT.FAIL_CODE, "invalid request, uri-mapping empty.");
         }
+
+        // 判断是否需要 检验 access-token
         if (XxlJobAdminConfig.getAdminConfig().getAccessToken()!=null
                 && XxlJobAdminConfig.getAdminConfig().getAccessToken().trim().length()>0
                 && !XxlJobAdminConfig.getAdminConfig().getAccessToken().equals(request.getHeader(XxlJobRemotingUtil.XXL_JOB_ACCESS_TOKEN))) {
@@ -55,12 +57,15 @@ public class JobApiController {
 
         // services mapping
         if ("callback".equals(uri)) {
+            // uri is ”callback“
             List<HandleCallbackParam> callbackParamList = GsonTool.fromJson(data, List.class, HandleCallbackParam.class);
             return adminBiz.callback(callbackParamList);
         } else if ("registry".equals(uri)) {
+            // uri is ”registry“ 注册
             RegistryParam registryParam = GsonTool.fromJson(data, RegistryParam.class);
             return adminBiz.registry(registryParam);
         } else if ("registryRemove".equals(uri)) {
+            // uri is ”registryRemove“ 注册移除
             RegistryParam registryParam = GsonTool.fromJson(data, RegistryParam.class);
             return adminBiz.registryRemove(registryParam);
         } else {

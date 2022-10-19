@@ -4,7 +4,9 @@ import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.IJobHandler;
 
 /**
- * glue job handler
+ * glue job handler 提供GLUE任务的处理器。
+ *
+ * General Language Understanding Evaluation
  *
  * @author xuxueli 2016-5-19 21:05:45
  */

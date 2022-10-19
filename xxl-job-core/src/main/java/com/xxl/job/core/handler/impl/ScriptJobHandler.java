@@ -11,6 +11,8 @@ import java.io.File;
 
 /**
  * Created by xuxueli on 17/4/27.
+ *
+ * 提供脚本处理器。
  */
 public class ScriptJobHandler extends IJobHandler {
 

@@ -13,7 +13,7 @@ import java.util.Map;
 
 
 /**
- * xxl-job executor (for frameless)
+ * xxl-job executor (for frameless) 不依赖 spring 框架的定时任务调度
  *
  * @author xuxueli 2020-11-05
  */
@@ -62,6 +62,8 @@ public class XxlJobSimpleExecutor extends XxlJobExecutor {
             if (methods.length == 0) {
                 continue;
             }
+
+            //没有使用spring框架 怎么来的 Xxjob 注解呢 ？？？
             for (Method executeMethod : methods) {
                 XxlJob xxlJob = executeMethod.getAnnotation(XxlJob.class);
                 // registry
