@@ -20,6 +20,8 @@ import java.util.Map;
 /**
  * xxl-job executor (for spring) 依赖 spring boot 框架的定时任务调度
  *
+ * SmartInitializingSingleton 初始化时 执行 afterSingletonsInstantiated()
+ *
  * @author xuxueli 2018-11-01 09:24:52
  */
 public class XxlJobSpringExecutor extends XxlJobExecutor implements ApplicationContextAware, SmartInitializingSingleton, DisposableBean {

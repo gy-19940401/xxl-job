@@ -45,6 +45,10 @@ public class JobScheduleHelper {
             public void run() {
 
                 try {
+                    /**
+                     * 随机休眠 4 ~ 5 秒
+                     * 防止 连续 多次 启动 导致导致的 mysql 竞争
+                     */
                     TimeUnit.MILLISECONDS.sleep(5000 - System.currentTimeMillis() % 1000);
                 } catch (InterruptedException e) {
                     if (!scheduleThreadToStop) {
@@ -62,6 +66,7 @@ public class JobScheduleHelper {
                 // }
                 int preReadCount = (XxlJobAdminConfig.getAdminConfig().getTriggerPoolFastMax() + XxlJobAdminConfig.getAdminConfig().getTriggerPoolSlowMax()) * 20;
 
+                // 死循环 不断地调度定时任务
                 while (!scheduleThreadToStop) {
 
                     // Scan Job
@@ -80,9 +85,11 @@ public class JobScheduleHelper {
                         // 关闭数据库 事务 自动提交
                         conn.setAutoCommit(false);
 
-                        // 给 表 xxl_job_lock 上锁 {
-                        // 类似于 分布式锁 的 感觉
-                        // }
+                        /**
+                         * 给 表 xxl_job_lock 上锁
+                         *  类似于 分布式锁 的 感觉
+                         *  防止 任务 重跑
+                         */
                         preparedStatement = conn.prepareStatement("select * from xxl_job_lock where lock_name = 'schedule_lock' for update");
                         preparedStatement.execute();
 
@@ -92,19 +99,20 @@ public class JobScheduleHelper {
                         long nowTime = System.currentTimeMillis();
                         //查询数据库中 5 秒后会执行的 任务
                         List<XxlJobInfo> scheduleList = XxlJobAdminConfig.getAdminConfig().getXxlJobInfoDao().scheduleJobQuery(nowTime + PRE_READ_MS, preReadCount);
-                        if (scheduleList != null && scheduleList.size() > 0) {
+                        if (scheduleList != null && scheduleList.size() > 0)  {
                             // 2、push time-ring 遍历 需要执行的任务 push 到 time-ring
                             for (XxlJobInfo jobInfo : scheduleList) {
 
                                 // time-ring jump
                                 if (nowTime > jobInfo.getTriggerNextTime() + PRE_READ_MS) {
-                                    // 当前任务 超过 5s 未被调度 执行调度过期策略 调度过期策略（忽略；立即执行一次【调用触发器执行】）
+                                    // 当前任务 过期 超过 5s 未被调度 执行调度过期策略 调度过期策略（忽略/立即执行一次【调用触发器执行】）
                                     // 2.1、trigger-expire > 5s：pass && make next-trigger-time
                                     logger.warn(">>>>>>>>>>> xxl-job, schedule misfire, jobId = " + jobInfo.getId());
 
                                     // 1、misfire match
                                     MisfireStrategyEnum misfireStrategyEnum = MisfireStrategyEnum.match(jobInfo.getMisfireStrategy(), MisfireStrategyEnum.DO_NOTHING);
                                     if (MisfireStrategyEnum.FIRE_ONCE_NOW == misfireStrategyEnum) {
+                                        // 过期策略是 立即执行一次
                                         // FIRE_ONCE_NOW 》 trigger
                                         JobTriggerPoolHelper.trigger(jobInfo.getId(), TriggerTypeEnum.MISFIRE, -1, null, null, null);
                                         logger.debug(">>>>>>>>>>> xxl-job, schedule push trigger : jobId = " + jobInfo.getId());

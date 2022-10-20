@@ -24,22 +24,22 @@ public class XxlJobScheduler  {
         // init i18n
         initI18n();
 
-        // admin trigger pool start
+        // admin trigger pool start 创建 两个任务调度线程池？？？
         JobTriggerPoolHelper.toStart();
 
-        // admin registry monitor run
+        // admin registry monitor run 执行器 定时探活
         JobRegistryHelper.getInstance().start();
 
-        // admin fail-monitor run
+        // admin fail-monitor run 任务执行失败处理
         JobFailMonitorHelper.getInstance().start();
 
-        // admin lose-monitor run ( depend on JobTriggerPoolHelper )
+        // admin lose-monitor run ( depend on JobTriggerPoolHelper ) 任务结果处理
         JobCompleteHelper.getInstance().start();
 
-        // admin log report start
+        // admin log report start 报表线程（统计信息）
         JobLogReportHelper.getInstance().start();
 
-        // start-schedule  ( depend on JobTriggerPoolHelper )
+        // start-schedule  ( depend on JobTriggerPoolHelper ) 启动调度器
         JobScheduleHelper.getInstance().start();
 
         logger.info(">>>>>>>>> init xxl-job admin success.");

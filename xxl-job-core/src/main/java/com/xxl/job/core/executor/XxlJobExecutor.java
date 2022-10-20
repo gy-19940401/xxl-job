@@ -82,12 +82,15 @@ public class XxlJobExecutor {
 
 
         // init JobLogFileCleanThread
+        // 清理日志的线程
         JobLogFileCleanThread.getInstance().start(logRetentionDays);
 
         // init TriggerCallbackThread
+        // 触发器回调线程（拿到 执行器的 执行结果）
         TriggerCallbackThread.getInstance().start();
 
         // init executor-server
+        // 内置的 tomcat
         initEmbedServer(address, ip, port, appname, accessToken);
     }
 

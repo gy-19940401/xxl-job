@@ -38,6 +38,9 @@ public class AdminBizClient implements AdminBiz {
     }
 
     @Override
+    /**
+     * 调用的时管理后台的地址 ： xxl.job.admin.addresses
+     */
     public ReturnT<String> registry(RegistryParam registryParam) {
         return XxlJobRemotingUtil.postBody(addressUrl + "api/registry", accessToken, timeout, registryParam, String.class);
     }

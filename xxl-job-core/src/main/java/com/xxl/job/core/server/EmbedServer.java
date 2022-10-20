@@ -36,6 +36,7 @@ public class EmbedServer {
     public void start(final String address, final int port, final String appname, final String accessToken) {
         executorBiz = new ExecutorBizImpl();
         thread = new Thread(new Runnable() {
+            //netty
             @Override
             public void run() {
                 // param
@@ -60,7 +61,7 @@ public class EmbedServer {
                             }
                         });
                 try {
-                    // start server
+                    // start server -- netty server
                     ServerBootstrap bootstrap = new ServerBootstrap();
                     bootstrap.group(bossGroup, workerGroup)
                             .channel(NioServerSocketChannel.class)
